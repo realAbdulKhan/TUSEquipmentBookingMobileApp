@@ -16,16 +16,20 @@ import com.example.mytusequipmentbooking.screens.HomeScreen
 import com.example.mytusequipmentbooking.viewmodel.EquipmentBookingViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
+import androidx.navigation.compose.currentBackStackEntryAsState
+
 @Composable
 fun AppNavigation() {
 
     val navController = rememberNavController()
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
 
     val equipmentViewModel: EquipmentBookingViewModel = viewModel()
 
     val uiState = equipmentViewModel.uiState.collectAsStateWithLifecycle()
-
     EquipmentBookingMenuShell(
+        selectedRoute = currentRoute ?: "welcome",
         onWelcomeClick = {
             navController.navigate("welcome") {
                 popUpTo("welcome") {
