@@ -16,15 +16,13 @@ import androidx.room.PrimaryKey
         )
     ],
     indices = [
-        Index("equipmentId"),
-        Index("userUid")
+        Index("equipmentId")
     ]
 )
 data class Booking(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val equipmentId: Int,
-    val userUid: String,
     val durationDays: Int,
     val purpose: String,
     val status: String

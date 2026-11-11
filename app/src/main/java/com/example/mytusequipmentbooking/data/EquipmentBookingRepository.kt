@@ -1,3 +1,4 @@
+
 package com.example.mytusequipmentbooking.data
 
 import androidx.room.withTransaction
@@ -15,12 +16,14 @@ class EquipmentBookingRepository(
 
     val equipment = dao.observeEquipment()
 
-    fun observeBookingsForUser(userUid: String): Flow<List<Booking>> {
-        return dao.observeBookingsForUser(userUid)
-    }
+    val bookings: Flow<List<Booking>> = dao.observeBookings()
 
     suspend fun insertBooking(booking: Booking): Long {
         return dao.insertBooking(booking)
+    }
+
+    suspend fun updateBookingStatus(bookingId: Int, status: String) {
+        dao.updateBookingStatus(bookingId, status)
     }
 
     suspend fun seedIfEmpty() {

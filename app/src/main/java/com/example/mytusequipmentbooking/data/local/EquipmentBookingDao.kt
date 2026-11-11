@@ -1,3 +1,4 @@
+
 package com.example.mytusequipmentbooking.data.local
 
 import androidx.room.Dao
@@ -20,9 +21,9 @@ interface EquipmentBookingDao {
     @Query("SELECT * FROM equipment")
     fun observeEquipment(): Flow<List<Equipment>>
 
-    // Observe bookings belonging to a particular user
-    @Query("SELECT * FROM bookings WHERE userUid = :userUid")
-    fun observeBookingsForUser(userUid: String): Flow<List<Booking>>
+    // Observe all bookings
+    @Query("SELECT * FROM bookings")
+    fun observeBookings(): Flow<List<Booking>>
 
     // Count categories
     @Query("SELECT COUNT(*) FROM categories")
@@ -43,4 +44,8 @@ interface EquipmentBookingDao {
     // Insert a booking
     @Insert
     suspend fun insertBooking(booking: Booking): Long
+
+    // Update a booking's status
+    @Query("UPDATE bookings SET status = :status WHERE id = :bookingId")
+    suspend fun updateBookingStatus(bookingId: Int, status: String)
 }
