@@ -1,3 +1,4 @@
+
 package com.example.mytusequipmentbooking
 
 import androidx.compose.runtime.Composable
@@ -8,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.mytusequipmentbooking.components.WelcomeScreen
 import com.example.mytusequipmentbooking.screens.EquipmentDetailsScreen
 import com.example.mytusequipmentbooking.screens.HomeScreen
 import com.example.mytusequipmentbooking.viewmodel.EquipmentBookingViewModel
@@ -23,14 +25,26 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "welcome"
     ) {
+
+        composable("welcome") {
+            WelcomeScreen(
+                onBrowseEquipment = {
+                    navController.navigate("home")
+                }
+            )
+        }
+
         composable("home") {
             HomeScreen(
                 equipment = uiState.value.equipment,
                 categories = uiState.value.categories,
                 onEquipmentClick = { equipmentId ->
                     navController.navigate("details/$equipmentId")
+                },
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }
