@@ -17,7 +17,7 @@ import com.example.mytusequipmentbooking.viewmodel.EquipmentBookingViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.navigation.compose.currentBackStackEntryAsState
-
+import com.example.mytusequipmentbooking.model.Booking
 @Composable
 fun AppNavigation() {
 
@@ -96,8 +96,18 @@ fun AppNavigation() {
                         onBack = {
                             navController.popBackStack()
                         },
-                        onBookEquipment = {
-                            // Booking navigation will be added later
+                        onBookEquipment = { durationDays, purpose ->
+
+                            val booking = Booking(
+                                equipmentId = selectedEquipment.id,
+                                durationDays = durationDays,
+                                purpose = purpose,
+                                status = "Pending"
+                            )
+
+                            equipmentViewModel.addBooking(booking)
+
+                            navController.popBackStack()
                         }
                     )
                 }
