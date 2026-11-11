@@ -27,6 +27,7 @@ fun EquipmentBookingMenuShell(
     selectedRoute: String,
     onWelcomeClick: () -> Unit,
     onBrowseClick: () -> Unit,
+    onMyBookingsClick: () -> Unit,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(
@@ -79,6 +80,19 @@ fun EquipmentBookingMenuShell(
                             drawerState.close()
                         }
                         onBrowseClick()
+                    }
+                )
+
+                NavigationDrawerItem(
+                    label = {
+                        Text("My Bookings")
+                    },
+                    selected = selectedRoute == "bookings",
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        onMyBookingsClick()
                     }
                 )
             }
