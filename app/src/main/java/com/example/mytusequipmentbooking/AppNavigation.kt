@@ -9,11 +9,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.mytusequipmentbooking.components.EquipmentBookingMenuShell
 import com.example.mytusequipmentbooking.components.WelcomeScreen
 import com.example.mytusequipmentbooking.screens.EquipmentDetailsScreen
 import com.example.mytusequipmentbooking.screens.HomeScreen
 import com.example.mytusequipmentbooking.viewmodel.EquipmentBookingViewModel
-
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
 @Composable
 fun AppNavigation() {
 
@@ -23,62 +25,78 @@ fun AppNavigation() {
 
     val uiState = equipmentViewModel.uiState.collectAsStateWithLifecycle()
 
-    NavHost(
-        navController = navController,
-        startDestination = "welcome"
-    ) {
-
-        composable("welcome") {
-            WelcomeScreen(
-                onBrowseEquipment = {
-                    navController.navigate("home")
+    EquipmentBookingMenuShell(
+        onWelcomeClick = {
+            navController.navigate("welcome") {
+                popUpTo("welcome") {
+                    inclusive = false
                 }
-            )
+            }
+        },
+        onBrowseClick = {
+            navController.navigate("home")
         }
+    ) { paddingValues ->
 
-        composable("home") {
-            HomeScreen(
-                equipment = uiState.value.equipment,
-                categories = uiState.value.categories,
-                onEquipmentClick = { equipmentId ->
-                    navController.navigate("details/$equipmentId")
-                },
-                onBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
+        NavHost(
+            navController = navController,
+            startDestination = "welcome",
+            modifier = Modifier.padding(paddingValues)
 
-        composable(
-            route = "details/{equipmentId}",
-            arguments = listOf(
-                navArgument("equipmentId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
+        ) {
 
-            val equipmentId = backStackEntry.arguments
-                ?.getInt("equipmentId")
-
-            val selectedEquipment = uiState.value.equipment
-                .firstOrNull { it.id == equipmentId }
-
-            val categoryName = uiState.value.categories
-                .firstOrNull { it.id == selectedEquipment?.categoryId }
-                ?.name ?: "Unknown Category"
-
-            if (selectedEquipment != null) {
-                EquipmentDetailsScreen(
-                    equipment = selectedEquipment,
-                    categoryName = categoryName,
-                    onBack = {
-                        navController.popBackStack()
-                    },
-                    onBookEquipment = {
-                        // Booking navigation will be added later
+            composable("welcome") {
+                WelcomeScreen(
+                    onBrowseEquipment = {
+                        navController.navigate("home")
                     }
                 )
+            }
+
+            composable("home") {
+                HomeScreen(
+                    equipment = uiState.value.equipment,
+                    categories = uiState.value.categories,
+                    onEquipmentClick = { equipmentId ->
+                        navController.navigate("details/$equipmentId")
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = "details/{equipmentId}",
+                arguments = listOf(
+                    navArgument("equipmentId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val equipmentId = backStackEntry.arguments
+                    ?.getInt("equipmentId")
+
+                val selectedEquipment = uiState.value.equipment
+                    .firstOrNull { it.id == equipmentId }
+
+                val categoryName = uiState.value.categories
+                    .firstOrNull { it.id == selectedEquipment?.categoryId }
+                    ?.name ?: "Unknown Category"
+
+                if (selectedEquipment != null) {
+                    EquipmentDetailsScreen(
+                        equipment = selectedEquipment,
+                        categoryName = categoryName,
+                        onBack = {
+                            navController.popBackStack()
+                        },
+                        onBookEquipment = {
+                            // Booking navigation will be added later
+                        }
+                    )
+                }
             }
         }
     }
