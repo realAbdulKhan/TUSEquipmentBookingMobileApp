@@ -65,6 +65,8 @@ fun AppNavigation() {
                 HomeScreen(
                     equipment = uiState.value.equipment,
                     categories = uiState.value.categories,
+                    isLoading = uiState.value.isLoading,
+                    error = uiState.value.error,
                     onEquipmentClick = { equipmentId ->
                         navController.navigate("details/$equipmentId")
                     },

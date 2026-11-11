@@ -18,6 +18,8 @@ import com.example.mytusequipmentbooking.model.Equipment
 fun HomeScreen(
     equipment: List<Equipment>,
     categories: List<Category>,
+    isLoading: Boolean,
+    error: String?,
     onEquipmentClick: (Int) -> Unit,
     onBack: () -> Unit
 ) {
@@ -37,22 +39,36 @@ fun HomeScreen(
             )
         }
 
-        items(
-            items = equipment,
-            key = { it.id }
-        ) { item ->
+        if (isLoading) {
+            item {
+                Text("Loading equipment...")
+            }
+        } else if (error != null) {
+            item {
+                Text("Error: $error")
+            }
+        } else if (equipment.isEmpty()) {
+            item {
+                Text("No equipment available.")
+            }
+        } else {
+            items(
+                items = equipment,
+                key = { it.id }
+            ) { item ->
 
-            val categoryName = categories
-                .firstOrNull { it.id == item.categoryId }
-                ?.name ?: "Unknown Category"
+                val categoryName = categories
+                    .firstOrNull { it.id == item.categoryId }
+                    ?.name ?: "Unknown Category"
 
-            EquipmentCard(
-                equipment = item,
-                categoryName = categoryName,
-                onOpen = {
-                    onEquipmentClick(item.id)
-                }
-            )
+                EquipmentCard(
+                    equipment = item,
+                    categoryName = categoryName,
+                    onOpen = {
+                        onEquipmentClick(item.id)
+                    }
+                )
+            }
         }
     }
 }
