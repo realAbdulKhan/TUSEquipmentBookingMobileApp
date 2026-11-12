@@ -1,4 +1,6 @@
-package com.example.mytusequipmentbooking.components
+
+package com.example.mytusequipmentbooking.screens
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,9 +15,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -26,6 +28,8 @@ import com.example.mytusequipmentbooking.model.Equipment
 fun MyBookingsScreen(
     bookings: List<Booking>,
     equipment: List<Equipment>,
+    isLoading: Boolean,
+    error: String?,
     onCancelBooking: (Int) -> Unit,
     onBack: () -> Unit
 ) {
@@ -45,43 +49,52 @@ fun MyBookingsScreen(
                 Text("My Bookings")
             }
 
-            if (bookings.isEmpty()) {
+            if (isLoading) {
+                item {
+                    Text("Loading bookings...")
+                }
+            } else if (error != null) {
+                item {
+                    Text("Error: $error")
+                }
+            } else if (bookings.isEmpty()) {
                 item {
                     Text("You have no bookings yet.")
                 }
-            }
+            } else {
+                items(
+                    items = bookings,
+                    key = { it.id }
+                ) { booking ->
 
-            items(
-                items = bookings,
-                key = { it.id }
-            ) { booking ->val selectedEquipment = equipment
-                .firstOrNull { it.id == booking.equipmentId }
+                    val selectedEquipment = equipment.firstOrNull {
+                        it.id == booking.equipmentId
+                    }
 
-                Card(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            text = selectedEquipment?.name
-                                ?: "Unknown Equipment"
-                        )
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = selectedEquipment?.name
+                                    ?: "Unknown Equipment"
+                            )
 
-                        Text("Duration: ${booking.durationDays} day(s)")
+                            Text("Duration: ${booking.durationDays} day(s)")
+                            Text("Purpose: ${booking.purpose}")
+                            Text("Status: ${booking.status}")
 
-                        Text("Purpose: ${booking.purpose}")
-
-                        Text("Status: ${booking.status}")
-
-                        if (booking.status != "Cancelled") {
-                            Button(
-                                onClick = {
-                                    bookingToCancel = booking
+                            if (booking.status != "Cancelled") {
+                                Button(
+                                    onClick = {
+                                        bookingToCancel = booking
+                                    }
+                                ) {
+                                    Text("Cancel Booking")
                                 }
-                            ) {
-                                Text("Cancel Booking")
                             }
                         }
                     }

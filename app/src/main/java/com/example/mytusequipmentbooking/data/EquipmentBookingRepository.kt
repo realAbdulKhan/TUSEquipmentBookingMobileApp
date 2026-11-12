@@ -4,6 +4,7 @@ package com.example.mytusequipmentbooking.data
 import androidx.room.withTransaction
 import com.example.mytusequipmentbooking.data.local.EquipmentBookingDatabase
 import com.example.mytusequipmentbooking.model.Booking
+import com.example.mytusequipmentbooking.model.Equipment
 import kotlinx.coroutines.flow.Flow
 
 class EquipmentBookingRepository(
@@ -12,11 +13,33 @@ class EquipmentBookingRepository(
 
     private val dao = database.equipmentBookingDao()
 
-    val categories = dao.observeCategories()
+    fun observeCategories() =
+        dao.observeCategories()
 
-    val equipment = dao.observeEquipment()
+    fun observeEquipment() =
+        dao.observeEquipment()
 
     val bookings: Flow<List<Booking>> = dao.observeBookings()
+
+    suspend fun seedIfEmpty() {
+
+        database.withTransaction {
+
+            val categoryCount = dao.categoryCount()
+            val equipmentCount = dao.equipmentCount()
+
+            if (categoryCount == 0 && equipmentCount == 0) {
+
+                dao.insertCategories(SampleData.categories)
+
+                dao.insertEquipment(SampleData.equipment)
+            }
+        }
+    }
+
+    suspend fun saveEquipment(equipment: Equipment): Long {
+        return dao.insertNewEquipment(equipment)
+    }
 
     suspend fun insertBooking(booking: Booking): Long {
         return dao.insertBooking(booking)
@@ -24,17 +47,5 @@ class EquipmentBookingRepository(
 
     suspend fun updateBookingStatus(bookingId: Int, status: String) {
         dao.updateBookingStatus(bookingId, status)
-    }
-
-    suspend fun seedIfEmpty() {
-        val categoryCount = dao.categoryCount()
-        val equipmentCount = dao.equipmentCount()
-
-        if (categoryCount == 0 && equipmentCount == 0) {
-            database.withTransaction {
-                dao.insertCategories(SampleData.categories)
-                dao.insertEquipment(SampleData.equipment)
-            }
-        }
     }
 }

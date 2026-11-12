@@ -1,3 +1,4 @@
+
 package com.example.mytusequipmentbooking.model
 
 import androidx.room.Entity
@@ -15,10 +16,10 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.RESTRICT
         )
     ],
-    indices = [Index("categoryId")]
+    indices = [Index(value = ["categoryId"])]
 )
 data class Equipment(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id: Int,
     val categoryId: Int,
     val name: String,

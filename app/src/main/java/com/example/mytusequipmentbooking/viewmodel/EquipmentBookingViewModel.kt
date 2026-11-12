@@ -13,16 +13,17 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class EquipmentBookingUiState(
-    val categories: List<Category> = emptyList(),
     val equipment: List<Equipment> = emptyList(),
+    val categories: List<Category> = emptyList(),
     val bookings: List<Booking> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null
+    val loadError: String? = null,
+    val actionMessage: String? = null,
+    val isAdding: Boolean = false
 )
 
 class EquipmentBookingViewModel(application: Application) :
@@ -34,82 +35,188 @@ class EquipmentBookingViewModel(application: Application) :
     private val repository =
         EquipmentBookingRepository(database)
 
-    private val _uiState = MutableStateFlow(EquipmentBookingUiState())
-    val uiState: StateFlow<EquipmentBookingUiState> = _uiState.asStateFlow()
+    private val _uiState =
+        MutableStateFlow(EquipmentBookingUiState())
+
+    val uiState: StateFlow<EquipmentBookingUiState> =
+        _uiState.asStateFlow()
 
     init {
-        seedDatabase()
-        observeData()
+        loadData()
     }
 
-    private fun seedDatabase() {
+    private fun loadData() {
+
         viewModelScope.launch {
             try {
                 repository.seedIfEmpty()
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Unable to load sample data."
-                )
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadError = error.message
+                            ?: "Unable to load app data."
+                    )
+                }
+                return@launch
             }
         }
-    }
 
-    private fun observeData() {
+        // Observe equipment
         viewModelScope.launch {
-            combine(
-                repository.categories,
-                repository.equipment,
-                repository.bookings
-            ) { categories, equipment, bookings ->
-                EquipmentBookingUiState(
-                    categories = categories,
-                    equipment = equipment,
-                    bookings = bookings,
-                    isLoading = false
-                )
-            }.catch { e ->
-                if (e is CancellationException) throw e
+            try {
+                repository.observeEquipment().collect { equipment: List<Equipment> ->
+                    _uiState.update {
+                        it.copy(
+                            equipment = equipment,
+                            isLoading = false
+                        )
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadError = error.message
+                            ?: "Unable to load equipment."
+                    )
+                }
+            }
+        }
 
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Unable to load app data."
-                )
-            }.collect { state ->
-                _uiState.value = state
+        // Observe categories
+        viewModelScope.launch {
+            try {
+                repository.observeCategories().collect { categories: List<Category> ->
+                    _uiState.update {
+                        it.copy(categories = categories)
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        loadError = error.message
+                            ?: "Unable to load categories."
+                    )
+                }
+            }
+        }
+
+        // Observe bookings
+        viewModelScope.launch {
+            try {
+                repository.bookings.collect { bookings: List<Booking> ->
+                    _uiState.update {
+                        it.copy(bookings = bookings)
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        loadError = error.message
+                            ?: "Unable to load bookings."
+                    )
+                }
             }
         }
     }
 
+    // ADD EQUIPMENT
+    fun addEquipment(equipment: Equipment) {
+
+        val current = _uiState.value
+
+        if (current.isLoading ||
+            current.isAdding ||
+            current.loadError != null
+        ) return
+
+        _uiState.update {
+            it.copy(
+                isAdding = true,
+                actionMessage = null
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                val id = repository.saveEquipment(equipment)
+
+                _uiState.update {
+                    it.copy(
+                        actionMessage =
+                            "Equipment saved successfully. ID: $id"
+                    )
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        actionMessage = error.message
+                            ?: "Unable to save equipment."
+                    )
+                }
+            } finally {
+                _uiState.update {
+                    it.copy(isAdding = false)
+                }
+            }
+        }
+    }
+
+    // ADD BOOKING
     fun addBooking(booking: Booking) {
+
         viewModelScope.launch {
             try {
                 repository.insertBooking(booking)
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Unable to save booking."
-                )
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        actionMessage = error.message
+                            ?: "Unable to save booking."
+                    )
+                }
             }
         }
     }
 
+    // CANCEL BOOKING
     fun cancelBooking(bookingId: Int) {
+
         viewModelScope.launch {
             try {
                 repository.updateBookingStatus(
                     bookingId = bookingId,
                     status = "Cancelled"
                 )
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
 
-                _uiState.value = _uiState.value.copy(
-                    error = e.message ?: "Unable to cancel booking."
-                )
+                _uiState.update {
+                    it.copy(
+                        actionMessage =
+                            "Booking cancelled successfully."
+                    )
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        actionMessage = error.message
+                            ?: "Unable to cancel booking."
+                    )
+                }
             }
         }
     }

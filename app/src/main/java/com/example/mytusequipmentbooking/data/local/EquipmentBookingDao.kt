@@ -10,6 +10,7 @@ import com.example.mytusequipmentbooking.model.Category
 import com.example.mytusequipmentbooking.model.Equipment
 import kotlinx.coroutines.flow.Flow
 
+
 @Dao
 interface EquipmentBookingDao {
 
@@ -41,6 +42,12 @@ interface EquipmentBookingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEquipment(equipment: List<Equipment>)
 
+    @Insert
+    suspend fun insertNewEquipment(equipment: Equipment): Long
+
+    // Delete equipment by id (we'll add this later)
+    @Query("DELETE FROM equipment WHERE id = :equipmentId")
+    suspend fun deleteEquipment(equipmentId: Int)
     // Insert a booking
     @Insert
     suspend fun insertBooking(booking: Booking): Long

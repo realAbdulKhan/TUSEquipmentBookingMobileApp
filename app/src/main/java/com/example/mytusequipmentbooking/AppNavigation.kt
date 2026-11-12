@@ -13,10 +13,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mytusequipmentbooking.components.EquipmentBookingMenuShell
-import com.example.mytusequipmentbooking.components.MyBookingsScreen
 import com.example.mytusequipmentbooking.components.WelcomeScreen
+import com.example.mytusequipmentbooking.model.Booking
 import com.example.mytusequipmentbooking.screens.EquipmentDetailsScreen
 import com.example.mytusequipmentbooking.screens.HomeScreen
+import com.example.mytusequipmentbooking.screens.MyBookingsScreen
 import com.example.mytusequipmentbooking.viewmodel.EquipmentBookingViewModel
 
 @Composable
@@ -66,15 +67,16 @@ fun AppNavigation() {
                     equipment = uiState.value.equipment,
                     categories = uiState.value.categories,
                     isLoading = uiState.value.isLoading,
-                    error = uiState.value.error,
+                    error = uiState.value.loadError,
                     onEquipmentClick = { equipmentId ->
                         navController.navigate("details/$equipmentId")
                     },
                     onBack = {
                         navController.popBackStack()
-                    }
-                )
-            }
+                    },
+                    onAddEquipment = { newEquipment ->
+                        equipmentViewModel.addEquipment(newEquipment)
+                    })}
 
             composable(
                 route = "details/{equipmentId}",
@@ -107,7 +109,7 @@ fun AppNavigation() {
                         },
                         onBookEquipment = { durationDays, purpose ->
 
-                            val booking = com.example.mytusequipmentbooking.model.Booking(
+                            val booking = Booking(
                                 equipmentId = selectedEquipment.id,
                                 durationDays = durationDays,
                                 purpose = purpose,
@@ -126,6 +128,8 @@ fun AppNavigation() {
                 MyBookingsScreen(
                     bookings = uiState.value.bookings,
                     equipment = uiState.value.equipment,
+                    isLoading = uiState.value.isLoading,
+                    error = uiState.value.loadError,
                     onCancelBooking = { bookingId ->
                         equipmentViewModel.cancelBooking(bookingId)
                     },
