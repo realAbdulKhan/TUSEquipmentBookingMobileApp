@@ -1,6 +1,7 @@
 
 package com.example.mytusequipmentbooking.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,9 +32,9 @@ fun HomeScreen(
     error: String?,
     onEquipmentClick: (Int) -> Unit,
     onBack: () -> Unit,
-    onAddEquipment: (Equipment) -> Unit
+    onAddEquipment: (Equipment) -> Unit,
+    onDeleteEquipment: (Int) -> Unit
 ) {
-
     var showAddDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -58,15 +59,16 @@ fun HomeScreen(
         mutableStateOf<String?>(null)
     }
 
+    var equipmentToDelete by rememberSaveable {
+        mutableStateOf<Equipment?>(null)
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
     ) {
-
         item {
-            Button(
-                onClick = onBack
-            ) {
+            Button(onClick = onBack) {
                 Text("Back to Welcome")
             }
 
@@ -76,11 +78,14 @@ fun HomeScreen(
                 onClick = {
                     equipmentName = ""
                     equipmentDescription = ""
-                    selectedCategoryId = categories.firstOrNull()?.id ?: -1
+                    selectedCategoryId =
+                        categories.firstOrNull()?.id ?: -1
                     validationError = null
                     showAddDialog = true
                 },
-                enabled = !isLoading && error == null && categories.isNotEmpty()
+                enabled = !isLoading &&
+                        error == null &&
+                        categories.isNotEmpty()
             ) {
                 Text("Add Equipment")
             }
@@ -113,6 +118,9 @@ fun HomeScreen(
                     categoryName = categoryName,
                     onOpen = {
                         onEquipmentClick(item.id)
+                    },
+                    onDelete = {
+                        equipmentToDelete = item
                     }
                 )
             }
@@ -121,20 +129,15 @@ fun HomeScreen(
 
     // ADD EQUIPMENT DIALOG
     if (showAddDialog) {
-
         AlertDialog(
             onDismissRequest = {
                 showAddDialog = false
             },
-
             title = {
                 Text("Add New Equipment")
             },
-
             text = {
-
-                androidx.compose.foundation.layout.Column {
-
+                Column {
                     OutlinedTextField(
                         value = equipmentName,
                         onValueChange = {
@@ -179,7 +182,6 @@ fun HomeScreen(
                         }
                     ) {
                         categories.forEach { category ->
-
                             DropdownMenuItem(
                                 text = {
                                     Text(category.name)
@@ -198,19 +200,19 @@ fun HomeScreen(
                     }
                 }
             },
-
             confirmButton = {
                 TextButton(
                     onClick = {
-
                         if (equipmentName.isBlank()) {
-                            validationError = "Please enter an equipment name."
+                            validationError =
+                                "Please enter an equipment name."
                         } else if (equipmentDescription.isBlank()) {
-                            validationError = "Please enter a description."
+                            validationError =
+                                "Please enter a description."
                         } else if (selectedCategoryId == -1) {
-                            validationError = "Please select a category."
+                            validationError =
+                                "Please select a category."
                         } else {
-
                             val newEquipment = Equipment(
                                 id = 0,
                                 categoryId = selectedCategoryId,
@@ -219,7 +221,6 @@ fun HomeScreen(
                             )
 
                             onAddEquipment(newEquipment)
-
                             showAddDialog = false
                         }
                     }
@@ -227,11 +228,49 @@ fun HomeScreen(
                     Text("Save")
                 }
             },
-
             dismissButton = {
                 TextButton(
                     onClick = {
                         showAddDialog = false
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // DELETE CONFIRMATION DIALOG
+    if (equipmentToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                equipmentToDelete = null
+            },
+            title = {
+                Text("Delete Equipment")
+            },
+            text = {
+                Text(
+                    "Are you sure you want to delete " +
+                            "${equipmentToDelete?.name}?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        equipmentToDelete?.let { item ->
+                            onDeleteEquipment(item.id)
+                        }
+                        equipmentToDelete = null
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        equipmentToDelete = null
                     }
                 ) {
                     Text("Cancel")

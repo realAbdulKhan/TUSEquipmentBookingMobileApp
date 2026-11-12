@@ -76,7 +76,11 @@ fun AppNavigation() {
                     },
                     onAddEquipment = { newEquipment ->
                         equipmentViewModel.addEquipment(newEquipment)
-                    })}
+                    },
+                    onDeleteEquipment = { equipmentId ->
+                        equipmentViewModel.deleteEquipment(equipmentId)
+                    }
+                )}
 
             composable(
                 route = "details/{equipmentId}",

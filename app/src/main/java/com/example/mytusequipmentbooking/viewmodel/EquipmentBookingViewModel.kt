@@ -23,7 +23,8 @@ data class EquipmentBookingUiState(
     val isLoading: Boolean = true,
     val loadError: String? = null,
     val actionMessage: String? = null,
-    val isAdding: Boolean = false
+    val isAdding: Boolean = false,
+    val isDeleting: Boolean = false
 )
 
 class EquipmentBookingViewModel(application: Application) :
@@ -191,7 +192,52 @@ class EquipmentBookingViewModel(application: Application) :
             }
         }
     }
+    // DELETE EQUIPMENT
+    fun deleteEquipment(equipmentId: Int) {
 
+        val current = _uiState.value
+
+        if (current.isLoading ||
+            current.isAdding ||
+            current.isDeleting ||
+            current.loadError != null
+        ) return
+
+        _uiState.update {
+            it.copy(
+                isDeleting = true,
+                actionMessage = null
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                repository.deleteEquipment(equipmentId)
+
+                _uiState.update {
+                    it.copy(
+                        actionMessage = "Equipment deleted successfully."
+                    )
+                }
+
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        actionMessage = error.message
+                            ?: "Unable to delete equipment."
+                    )
+                }
+
+            } finally {
+                _uiState.update {
+                    it.copy(isDeleting = false)
+                }
+            }
+        }
+    }
     // CANCEL BOOKING
     fun cancelBooking(bookingId: Int) {
 
