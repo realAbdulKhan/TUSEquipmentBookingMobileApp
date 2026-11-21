@@ -10,6 +10,7 @@ import com.example.mytusequipmentbooking.model.Booking
 import com.example.mytusequipmentbooking.model.Category
 import com.example.mytusequipmentbooking.model.Equipment
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,17 +43,26 @@ class EquipmentBookingViewModel(application: Application) :
     val uiState: StateFlow<EquipmentBookingUiState> =
         _uiState.asStateFlow()
 
+    // Stores the UID of the currently signed-in Firebase user.
+    private var currentUserUid: String? = null
+
+    // Keeps track of the active bookings observer.
+    private var bookingsJob: Job? = null
+
     init {
         loadData()
     }
 
+    // Loads the initial equipment and category data.
     private fun loadData() {
 
         viewModelScope.launch {
             try {
                 repository.seedIfEmpty()
+
             } catch (cancelled: CancellationException) {
                 throw cancelled
+
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -65,10 +75,10 @@ class EquipmentBookingViewModel(application: Application) :
             }
         }
 
-        // Observe equipment
+        // Observe equipment.
         viewModelScope.launch {
             try {
-                repository.observeEquipment().collect { equipment: List<Equipment> ->
+                repository.observeEquipment().collect { equipment ->
                     _uiState.update {
                         it.copy(
                             equipment = equipment,
@@ -76,8 +86,10 @@ class EquipmentBookingViewModel(application: Application) :
                         )
                     }
                 }
+
             } catch (cancelled: CancellationException) {
                 throw cancelled
+
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -89,16 +101,18 @@ class EquipmentBookingViewModel(application: Application) :
             }
         }
 
-        // Observe categories
+        // Observe categories.
         viewModelScope.launch {
             try {
-                repository.observeCategories().collect { categories: List<Category> ->
+                repository.observeCategories().collect { categories ->
                     _uiState.update {
                         it.copy(categories = categories)
                     }
                 }
+
             } catch (cancelled: CancellationException) {
                 throw cancelled
+
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -108,17 +122,40 @@ class EquipmentBookingViewModel(application: Application) :
                 }
             }
         }
+    }
 
-        // Observe bookings
-        viewModelScope.launch {
+    // Updates the currently signed-in Firebase user.
+    // Observes only bookings belonging to that user's UID.
+    fun setUserUid(userUid: String?) {
+
+        if (currentUserUid == userUid) return
+
+        currentUserUid = userUid
+
+        // Stop observing the previous user's bookings.
+        bookingsJob?.cancel()
+        bookingsJob = null
+
+        // Clear previous bookings when the user changes or logs out.
+        _uiState.update {
+            it.copy(bookings = emptyList())
+        }
+
+        // Do not observe bookings if nobody is signed in.
+        if (userUid == null) return
+
+        // Observe bookings belonging to the signed-in user.
+        bookingsJob = viewModelScope.launch {
             try {
-                repository.bookings.collect { bookings: List<Booking> ->
+                repository.observeBookings(userUid).collect { bookings ->
                     _uiState.update {
                         it.copy(bookings = bookings)
                     }
                 }
+
             } catch (cancelled: CancellationException) {
                 throw cancelled
+
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -157,8 +194,10 @@ class EquipmentBookingViewModel(application: Application) :
                             "Equipment saved successfully. ID: $id"
                     )
                 }
+
             } catch (cancelled: CancellationException) {
                 throw cancelled
+
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -166,6 +205,7 @@ class EquipmentBookingViewModel(application: Application) :
                             ?: "Unable to save equipment."
                     )
                 }
+
             } finally {
                 _uiState.update {
                     it.copy(isAdding = false)
@@ -177,11 +217,34 @@ class EquipmentBookingViewModel(application: Application) :
     // ADD BOOKING
     fun addBooking(booking: Booking) {
 
+        // A booking can only be created by a signed-in user.
+        val userUid = currentUserUid
+
+        if (userUid == null) {
+            _uiState.update {
+                it.copy(
+                    actionMessage = "Please log in before making a booking."
+                )
+            }
+            return
+        }
+
         viewModelScope.launch {
             try {
-                repository.insertBooking(booking)
+                // Attach the currently signed-in user's Firebase UID.
+                val userBooking = booking.copy(userUid = userUid)
+
+                repository.insertBooking(userBooking)
+
+                _uiState.update {
+                    it.copy(
+                        actionMessage = "Booking saved successfully."
+                    )
+                }
+
             } catch (cancelled: CancellationException) {
                 throw cancelled
+
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -192,6 +255,7 @@ class EquipmentBookingViewModel(application: Application) :
             }
         }
     }
+
     // DELETE EQUIPMENT
     fun deleteEquipment(equipmentId: Int) {
 
@@ -238,24 +302,39 @@ class EquipmentBookingViewModel(application: Application) :
             }
         }
     }
+
     // CANCEL BOOKING
     fun cancelBooking(bookingId: Int) {
 
+        val userUid = currentUserUid
+
+        if (userUid == null) {
+            _uiState.update {
+                it.copy(
+                    actionMessage = "Please log in before cancelling a booking."
+                )
+            }
+            return
+        }
+
         viewModelScope.launch {
             try {
+                // Only updates a booking belonging to the current user.
                 repository.updateBookingStatus(
                     bookingId = bookingId,
+                    userUid = userUid,
                     status = "Cancelled"
                 )
 
                 _uiState.update {
                     it.copy(
-                        actionMessage =
-                            "Booking cancelled successfully."
+                        actionMessage = "Booking cancelled successfully."
                     )
                 }
+
             } catch (cancelled: CancellationException) {
                 throw cancelled
+
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(

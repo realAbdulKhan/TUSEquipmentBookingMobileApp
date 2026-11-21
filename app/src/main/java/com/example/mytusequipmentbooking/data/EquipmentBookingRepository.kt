@@ -1,3 +1,4 @@
+
 package com.example.mytusequipmentbooking.data
 
 import androidx.room.withTransaction
@@ -9,45 +10,51 @@ import kotlinx.coroutines.flow.Flow
 class EquipmentBookingRepository(
     private val database: EquipmentBookingDatabase
 ) {
+
     private val dao = database.equipmentBookingDao()
 
-    fun observeCategories() =
-        dao.observeCategories()
+    fun observeCategories() = dao.observeCategories()
 
-    fun observeEquipment() =
-        dao.observeEquipment()
+    fun observeEquipment() = dao.observeEquipment()
 
-    val bookings: Flow<List<Booking>> = dao.observeBookings()
+    // Observes bookings belonging to a specific Firebase user.
+    fun observeBookings(userUid: String): Flow<List<Booking>> {
+        return dao.observeBookings(userUid)
+    }
 
+    // Inserts sample categories and equipment if the database is empty.
     suspend fun seedIfEmpty() {
-        database.withTransaction {
-            val categoryCount = dao.categoryCount()
-            val equipmentCount = dao.equipmentCount()
-
-            if (categoryCount == 0 && equipmentCount == 0) {
-                dao.insertCategories(SampleData.categories)
-                dao.insertEquipment(SampleData.equipment)
+        suspend fun seedIfEmpty() {
+            database.withTransaction {
+                if (dao.categoryCount() == 0 && dao.equipmentCount() == 0) {
+                    dao.insertCategories(SampleData.categories)
+                    dao.insertEquipment(SampleData.equipment)
+                }
             }
         }
     }
 
-    // SAVE EQUIPMENT
+    // Saves new equipment and returns its generated ID.
     suspend fun saveEquipment(equipment: Equipment): Long {
         return dao.insertNewEquipment(equipment)
     }
 
-    // DELETE EQUIPMENT
+    // Deletes equipment using its ID.
     suspend fun deleteEquipment(equipmentId: Int) {
         dao.deleteEquipment(equipmentId)
     }
 
-    // INSERT BOOKING
+    // Inserts a new booking.
     suspend fun insertBooking(booking: Booking): Long {
         return dao.insertBooking(booking)
     }
 
-    // UPDATE BOOKING STATUS
-    suspend fun updateBookingStatus(bookingId: Int, status: String) {
-        dao.updateBookingStatus(bookingId, status)
+    // Updates booking status only for the specified user.
+    suspend fun updateBookingStatus(
+        bookingId: Int,
+        userUid: String,
+        status: String
+    ) {
+        dao.updateBookingStatus(bookingId, userUid, status)
     }
 }

@@ -15,14 +15,13 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.RESTRICT
         )
     ],
-    indices = [
-        Index("equipmentId")
-    ]
+    indices = [Index("equipmentId")]
 )
 data class Booking(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val equipmentId: Int,
+    val userUid: String,
     val durationDays: Int,
     val purpose: String,
     val status: String

@@ -1,144 +1,76 @@
-# TUS Equipment Booking Mobile App
+# TUS Equipment Booking
 
-An Android application being developed as part of the BSc (Hons) Mobile & Web Computing programme at Technological University of the Shannon (TUS).
+An Android application developed as part of the BSc (Hons) Mobile and Web Computing programme at Technological University of the Shannon (TUS).
 
-The application aims to allow students to browse college equipment and, as development progresses, book equipment for academic use.
+The application allows users to browse equipment, view equipment details and create and manage their own equipment bookings.
 
-## Project Information
+## Features
 
-- **Project:** TUS Equipment Booking Mobile App
-- **Platform:** Android
-- **Language:** Kotlin
-- **UI Framework:** Jetpack Compose
-- **Design:** Material 3
-- **Local Database:** Room
-- **Navigation:** Navigation Compose
-- **IDE:** Android Studio
+- **User authentication:** Register, log in and log out using Firebase Authentication with email and password.
+- **Session persistence:** Remain signed in when reopening the application.
+- **Equipment catalogue:** Browse equipment organised by category.
+- **Equipment management:** Add and delete equipment.
+- **Equipment details:** View information about selected equipment.
+- **Equipment bookings:** Create bookings by selecting a duration and providing a purpose.
+- **My Bookings:** View and cancel bookings belonging to the currently signed-in user.
+- **User-specific bookings:** Each booking is associated with the Firebase Authentication user ID.
+- **Settings:** Switch between light and dark appearance.
+- **Navigation:** Move between application screens using the navigation drawer and bottom navigation bar.
 
-## Current Features
+## Technologies Used
 
-The following functionality has been implemented:
+- Kotlin
+- Android Studio
+- Jetpack Compose
+- Material 3
+- Room Database
+- Firebase Authentication
+- Kotlin Coroutines and Flow
+- Android Navigation Compose
+- SharedPreferences
 
-- Android project setup using Kotlin and Jetpack Compose.
-- Equipment catalogue displaying six sample equipment items.
-- Equipment categories: Laptops, Cameras and Audio Equipment.
-- Reusable equipment card components.
-- Equipment details screen.
-- Navigation between the home screen and equipment details.
-- Room database entities for Category, Equipment and Booking.
-- Room DAO and database configuration.
-- Repository for database operations and initial sample data seeding.
-- ViewModel and UI state management.
-- Equipment catalogue connected to Room.
-- Local database persistence across application restarts.
+## Application Architecture
 
-## Project Structure
+The application uses Room for local data storage.
 
-```text
-TUSEquipmentBookingMobileApp/
-│
-├── app/
-│   └── src/
-│       └── main/
-│           ├── java/
-│           │   └── com/example/mytusequipmentbooking/
-│           │       ├── components/
-│           │       │   └── EquipmentCard.kt
-│           │       ├── data/
-│           │       │   ├── SampleData.kt
-│           │       │   └── ...
-│           │       ├── model/
-│           │       │   ├── Category.kt
-│           │       │   ├── Equipment.kt
-│           │       │   └── Booking.kt
-│           │       ├── screens/
-│           │       │   ├── HomeScreen.kt
-│           │       │   └── EquipmentDetailsScreen.kt
-│           │       ├── viewmodel/
-│           │       │   └── EquipmentBookingViewModel.kt
-│           │       ├── AppNavigation.kt
-│           │       └── MainActivity.kt
-│           │
-│           └── AndroidManifest.xml
-│
-├── gradle/
-├── build.gradle.kts
-├── settings.gradle.kts
-├── gradle.properties
-└── README.md
-```
+The main components include:
 
-*Note: The data package also contains the Room database, DAO and repository files.*
+- **Entities:** Define the database tables for equipment, categories and bookings.
+- **DAO:** Contains the database queries and operations.
+- **Repository:** Provides the data operations used by the ViewModel.
+- **ViewModel:** Manages application data and screen state.
+- **Jetpack Compose screens:** Display the user interface.
 
-## Equipment Categories
-
-The application currently includes:
-
-| Category | Sample Equipment |
-|---|---|
-| Laptops | Dell Latitude Laptop, MacBook Pro |
-| Cameras | Canon EOS Camera, Sony Video Camera |
-| Audio Equipment | Rode Microphone, Wireless Headphones |
-
-## Development Progress
-
-### Completed
-- [x] Android project setup
-- [x] Equipment and category models
-- [x] Sample equipment data
-- [x] Reusable equipment card
-- [x] Home screen
-- [x] Equipment details screen
-- [x] Navigation
-- [x] Room database setup
-- [x] DAO and repository
-- [x] Initial database seeding
-- [x] ViewModel and UI state
-- [x] Room integration with the equipment catalogue
-- [x] Database persistence testing
-
-### Planned
-Further development will follow the assignment requirements and the material covered in class.
-
-- [ ] Firebase authentication
-- [ ] User registration and login
-- [ ] Equipment booking functionality
-- [ ] My Bookings screen
-- [ ] Booking validation and cancellation
-- [ ] Final application testing and documentation
+Firebase Authentication is used for account registration, login and user identity. Equipment and booking records are stored locally using Room; Firebase is not used as a cloud database.
 
 ## Database
 
-The application uses Room for local data persistence.
+The local Room database contains three main entities:
 
-The database currently contains three main entities:
+| Entity | Purpose |
+|---|---|
+| Category | Stores equipment categories |
+| Equipment | Stores equipment information |
+| Booking | Stores booking details, including the equipment ID and user UID |
 
-- **Category:** Stores equipment categories.
-- **Equipment:** Stores equipment information and its associated category ID.
-- **Booking:** Defines the booking information structure.
+Bookings are filtered using the authenticated user's UID so that users only see their own bookings.
 
-Equipment and categories are populated using sample data when the local database is initially empty.
+## Getting Started
 
-## Testing
+1. Clone or download the project.
+2. Open the project in Android Studio.
+3. Configure the Firebase project for the application.
+4. Add the appropriate `google-services.json` file to the `app` directory.
+5. Ensure Email/Password authentication is enabled in the Firebase Console.
+6. Allow Gradle to synchronise the project.
+7. Run the application on an Android emulator or compatible Android device.
 
-The following tests have been completed:
+## Android Configuration
 
-- Application builds successfully.
-- Six equipment items display correctly.
-- Equipment categories display correctly.
-- Equipment details can be opened.
-- Back navigation works.
-- Equipment data remains available after restarting the application.
+- **Application ID:** `com.example.mytusequipmentbooking`
+- **Minimum SDK:** 24
+- **Compile SDK:** 37
 
-## Academic Development
+## Project Purpose
 
-This project is being developed using the techniques and coding approaches demonstrated in the lecturer-provided practicals, including EventHub Navigation, EventHub Room Database and User Management App.
-
-Additional functionality will be implemented as the relevant topics are covered during class.
-
----
-
-**Repository:** [TUSEquipmentBookingMobileApp](https://github.com/realAbdulKhan/TUSEquipmentBookingMobileApp)
-
-**Developer:** Abdul Ahad Khan  
-**Institution:** Technological University of
+This project demonstrates the development of an Android equipment booking application using Kotlin, Jetpack Compose, Room Database and Firebase Authentication. It applies concepts including local database management, user authentication, application navigation and reactive user interface development.
