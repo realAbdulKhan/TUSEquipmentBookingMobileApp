@@ -1,3 +1,4 @@
+
 package com.example.mytusequipmentbooking.components
 
 import androidx.compose.foundation.clickable
@@ -14,13 +15,13 @@ import androidx.compose.ui.unit.dp
 import com.example.mytusequipmentbooking.model.Equipment
 
 @Composable
-//  displays one piece of equipment as a card.
+// Displays one piece of equipment as a card.
 fun EquipmentCard(
 
-    //equipment object containing its ID, name, category ID and description.
+    // Equipment object containing its ID, name, category ID and description.
     equipment: Equipment,
 
-    // category name is separate so it can be displayed on the card.
+    // Category name is separate so it can be displayed on the card.
     categoryName: String,
 
     // Callback called when the user clicks the equipment details area.
@@ -29,8 +30,10 @@ fun EquipmentCard(
     // Callback called when the user presses the Delete Equipment button.
     onDelete: () -> Unit,
 
+    // Determines whether the Delete Equipment button is displayed.
+    isAdmin: Boolean,
+
     // Allows the parent screen to pass in its own layout modifications.
-    // Modifier by default means no additional modifications are applied.
     modifier: Modifier = Modifier
 
 ) {
@@ -38,7 +41,7 @@ fun EquipmentCard(
     // Card provides the layout for one equipment item.
     Card(
         modifier = modifier
-            // Makes the card use the full available width of app.
+            // Makes the card use the full available width of the app.
             .fillMaxWidth()
 
             // Adds 8dp of spacing around the card.
@@ -55,50 +58,41 @@ fun EquipmentCard(
             // This inner column contains the clickable equipment details.
             Column(
                 modifier = Modifier
-                    // Makes the clickable area use the full available width of pp.
+                    // Makes the clickable area use the full available width.
                     .fillMaxWidth()
 
                     // Makes the section clickable.
-                    // When clicked, it calls onOpen, which is connected to
-                    // the equipment details navigation in AppNavigation.
                     .clickable { onOpen() }
-
             ) {
 
                 // Displays the equipment name on the card.
                 Text(
                     text = equipment.name,
-
-                    // Uses the medium title style from the theme.
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                // Displays the category name under the equipment .
+                // Displays the category name under the equipment.
                 Text(
                     text = categoryName,
-
-                    // Uses the label medium text style.
                     style = MaterialTheme.typography.labelMedium
                 )
 
-                // Displays the  description.
+                // Displays the equipment description.
                 Text(
                     text = equipment.description,
-
-                    // Uses the standard body text style.
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
-            // button used to delete this equipment item.
-            Button(
-                // Calls the onDelete callback supplied by the parent screen.
-                // The actual deletion is handled through the ViewModel and Repository.
-                onClick = onDelete
-            ) {
+            // Only administrators can see the Delete Equipment button.
+            if (isAdmin) {
 
-                // Text displayed inside the  button.
-                Text("Delete Equipment")
+                Button(
+                    // Calls the onDelete callback supplied by the parent screen.
+                    onClick = onDelete
+                ) {
+                    Text("Delete Equipment")
+                }
             }
         }
     }

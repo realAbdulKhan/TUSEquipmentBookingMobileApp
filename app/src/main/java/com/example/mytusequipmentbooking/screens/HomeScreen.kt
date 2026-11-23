@@ -1,3 +1,4 @@
+
 package com.example.mytusequipmentbooking.screens
 
 import androidx.compose.foundation.layout.Column
@@ -26,34 +27,38 @@ import com.example.mytusequipmentbooking.model.Equipment
 @Composable
 fun HomeScreen(
 
-// List of equipment received from the ViewModel through AppNavigation.
-// Each Equipment object contains its name, description and category ID.
-equipment: List<Equipment>,
+    // List of equipment received from the ViewModel through AppNavigation.
+    // Each Equipment object contains its name, description and category ID.
+    equipment: List<Equipment>,
 
-// List of categories used to identify the category belonging to each item.
-categories: List<Category>,
+    // List of categories used to identify the category belonging to each item.
+    categories: List<Category>,
 
-// shows whether the application is currently loading database data.
-isLoading: Boolean,
+    // Shows whether the application is currently loading database data.
+    isLoading: Boolean,
 
-// Holds an error message if loading the equipment or categories fails.
-// Null means there is currently no error.
-error: String?,
+    // Holds an error message if loading the equipment or categories fails.
+    // Null means there is currently no error.
+    error: String?,
 
-// Callback called when the user selects an equipment item.
-// Passes the equipment ID so AppNavigation can open its details screen.
-onEquipmentClick: (Int) -> Unit,
+    // Identifies whether the currently signed-in user is an administrator.
+    // Administrators can add and delete equipment.
+    isAdmin: Boolean,
 
-// Callback used when the user wants to return to the Welcome screen.
-onBack: () -> Unit,
+    // Callback called when the user selects an equipment item.
+    // Passes the equipment ID so AppNavigation can open its details screen.
+    onEquipmentClick: (Int) -> Unit,
 
-// Callback used when the user saves new equipment.
-// Passes the new Equipment object to AppNavigation and the ViewModel.
-onAddEquipment: (Equipment) -> Unit,
+    // Callback used when the user wants to return to the Welcome screen.
+    onBack: () -> Unit,
 
-// Callback used when the user confirms equipment deletion.
-// Passes the equipment ID to the ViewModel.
-onDeleteEquipment: (Int) -> Unit
+    // Callback used when the user saves new equipment.
+    // Passes the new Equipment object to AppNavigation and the ViewModel.
+    onAddEquipment: (Equipment) -> Unit,
+
+    // Callback used when the user confirms equipment deletion.
+    // Passes the equipment ID to the ViewModel.
+    onDeleteEquipment: (Int) -> Unit
 
 ) {
 
@@ -118,39 +123,43 @@ onDeleteEquipment: (Int) -> Unit
             // Heading displayed above the equipment catalogue.
             Text("Available Equipment")
 
-            // Button that opens the Add Equipment dialog.
-            Button(
-                onClick = {
+            // Only administrators can see the Add Equipment button.
+            if (isAdmin) {
 
-                    // Clears the name field before opening the dialog.
-                    equipmentName = ""
+                // Button that opens the Add Equipment dialog.
+                Button(
+                    onClick = {
 
-                    // Clears the description field.
-                    equipmentDescription = ""
+                        // Clears the name field before opening the dialog.
+                        equipmentName = ""
 
-                    // Selects the first available category by default.
-                    // If there are no categories, the value remains -1.
-                    selectedCategoryId =
-                        categories.firstOrNull()?.id ?: -1
+                        // Clears the description field.
+                        equipmentDescription = ""
 
-                    // Clears any previous validation error.
-                    validationError = null
+                        // Selects the first available category by default.
+                        // If there are no categories, the value remains -1.
+                        selectedCategoryId =
+                            categories.firstOrNull()?.id ?: -1
 
-                    // Makes the Add Equipment dialog visible.
-                    showAddDialog = true
-                },
+                        // Clears any previous validation error.
+                        validationError = null
 
-                // The button is only enabled when:
-                // 1. The application is not loading.
-                // 2. There is no loading error.
-                // 3. At least one category exists.
-                enabled = !isLoading &&
-                        error == null &&
-                        categories.isNotEmpty()
+                        // Makes the Add Equipment dialog visible.
+                        showAddDialog = true
+                    },
 
-            ) {
-                // Text displayed inside the Add Equipment button.
-                Text("Add Equipment")
+                    // The button is only enabled when:
+                    // 1. The application is not loading.
+                    // 2. There is no loading error.
+                    // 3. At least one category exists.
+                    enabled = !isLoading &&
+                            error == null &&
+                            categories.isNotEmpty()
+
+                ) {
+                    // Text displayed inside the Add Equipment button.
+                    Text("Add Equipment")
+                }
             }
         }
 
@@ -218,7 +227,11 @@ onDeleteEquipment: (Int) -> Unit
                         // Stores the selected equipment object.
                         // This causes the delete confirmation dialog to appear.
                         equipmentToDelete = item
-                    }
+                    },
+
+                    // Passes the administrator status to EquipmentCard.
+                    // Only administrators can see the Delete Equipment button.
+                    isAdmin = isAdmin
                 )
             }
         }
@@ -227,7 +240,7 @@ onDeleteEquipment: (Int) -> Unit
 
     // ADD EQUIPMENT DIALOG
     // This dialog is only displayed when showAddDialog is true.
-    if (showAddDialog) {
+    if (showAddDialog && isAdmin) {
 
         // AlertDialog displays a popup for entering new equipment details.
         AlertDialog(
@@ -431,7 +444,7 @@ onDeleteEquipment: (Int) -> Unit
 
     // DELETE CONFIRMATION DIALOG
     // This dialog only appears when equipmentToDelete is not null.
-    if (equipmentToDelete != null) {
+    if (equipmentToDelete != null && isAdmin) {
 
         // Displays a confirmation popup before deleting equipment.
         AlertDialog(

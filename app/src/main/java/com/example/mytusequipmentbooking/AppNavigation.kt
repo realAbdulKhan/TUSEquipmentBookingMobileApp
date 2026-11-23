@@ -167,6 +167,11 @@ fun AppNavigation(
                     isLoading = uiState.value.isLoading,
                     error = uiState.value.loadError,
 
+                    // Checks whether the Firestore role check has completed
+                    // and whether the signed-in user is an administrator.
+                    isAdmin = authState.value.roleReady &&
+                            authState.value.isAdmin,
+
                     onEquipmentClick = { equipmentId ->
                         navController.navigate("details/$equipmentId")
                     },
@@ -175,12 +180,24 @@ fun AppNavigation(
                         navController.popBackStack()
                     },
 
+                    // Only administrators can add equipment.
                     onAddEquipment = { newEquipment ->
-                        equipmentViewModel.addEquipment(newEquipment)
+
+                        if (authState.value.roleReady &&
+                            authState.value.isAdmin
+                        ) {
+                            equipmentViewModel.addEquipment(newEquipment)
+                        }
                     },
 
+                    // Only administrators can delete equipment.
                     onDeleteEquipment = { equipmentId ->
-                        equipmentViewModel.deleteEquipment(equipmentId)
+
+                        if (authState.value.roleReady &&
+                            authState.value.isAdmin
+                        ) {
+                            equipmentViewModel.deleteEquipment(equipmentId)
+                        }
                     }
                 )
             }
