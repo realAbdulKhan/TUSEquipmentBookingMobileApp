@@ -122,7 +122,6 @@ The exact file names and package layout can be inspected in the repository.
 - Booking cancellation updates the booking status.
 - Equipment, categories and bookings are persisted locally using Room.
 
-The implementation must also be tested to confirm that equipment already booked by another user is unavailable, and that cancelling the booking makes it available again. Personal booking filtering alone does not prove this availability rule.
 
 ## 8. Repository and development history
 
